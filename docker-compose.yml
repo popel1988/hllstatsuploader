@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  crcon-sync-standalone:
+    build: .
+    container_name: crcon-sync-standalone
+    restart: unless-stopped
+    network_mode: host  # Container uses host network directly (for localhost DB access)
+    
+    # Environment variables - ADJUST HERE!
+    environment:
+      # ===== DATABASE CONFIGURATION =====
+      DB_HOST: localhost             # PostgreSQL DB hostname (localhost because network_mode: host)
+      DB_PORT: 15432                 # PostgreSQL port
+      DB_NAME: rcon                  # Database name
+      DB_USER: rcon                  # DB user
+      DB_PASSWORD: dein_passwort     # DB password - CHANGE!
+      
+      # ===== EXTERNAL API =====
+      EXTERNAL_DB_URL: https://dein-server.com/api/sync  # External API URL - CHANGE!
+      EXTERNAL_DB_API_KEY: ""        # Optional: API key
+      
+      # ===== SERVER CONFIGURATION =====
+      EXTERNAL_SERVER_ID: crcon_server_001
+      ENABLED_SERVERS: "1,2"         # Comma-separated, e.g. "1,2,3"
+      
+      # Server names as JSON (key = server_number, value = external name)
+      SERVER_NAMES: '{"1": "Server-DE-01", "2": "Server-DE-02"}'
+      
+      # ===== SYNC SETTINGS =====
+      SYNC_INTERVAL_MINUTES: 5       # Interval between exports
+      ENABLE_SYNC: "true"            # true/false
+      
+      # Table-specific batch sizes (optimized for different table sizes)
+      BATCH_SIZE_LOG_LINES: 50000      # Medium size, many records (~2-3 min upload)
+      BATCH_SIZE_PLAYER_STATS: 25000   # Large size, complex data (~5-8 min upload)
+      BATCH_SIZE_MAPS: 10000           # Small size, simple data (~30 sec upload)
+      BATCH_SIZE_PLAYER_SESSIONS: 30000 # Medium size (~1-2 min upload)
+      
+      # Legacy batch size (for backward compatibility)
+      BATCH_SIZE: 100000             # Fallback for old configurations
+      
+      # ===== SESSION BEHAVIOR =====
+      EXPORT_ONLY_CLOSED_SESSIONS: "true"      # Only export closed sessions
+      CHECK_RECENTLY_CLOSED_SESSIONS: "true"   # Lookback for later closed sessions
+      RECENT_SESSION_LOOKBACK_HOURS: 24        # How many hours back to check
+      
+      # ===== NETWORK =====
+      REQUEST_TIMEOUT: 300           # Timeout in seconds (5 min for large batches)
+      MAX_RETRIES: 3                 # Number of retry attempts
+      RETRY_DELAY: 5                 # Wait time between attempts (seconds)
+      
+      # ===== INTERNAL =====
+      STATE_DIR: /data               # Where state file is stored
+    
+    # Volume for persistent state file
+    volumes:
+      - sync-state:/data
+    
+    # Log rotation (max 30MB = 3x10MB)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Volumes
+volumes:
+  sync-state:
+    driver: local
+
+# NOTE: No networks: section because of network_mode: host
+# Container uses host network directly and can use localhost
+
