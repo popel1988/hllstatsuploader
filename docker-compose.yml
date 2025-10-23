@@ -28,12 +28,12 @@ services:
       SERVER_NAMES: '{"1": "Server-DE-01", "2": "Server-DE-02"}'
       
       # ===== SYNC SETTINGS =====
-      SYNC_INTERVAL_MINUTES: 5       # Interval between exports
+      SYNC_INTERVAL_MINUTES: 1       # Interval between exports
       ENABLE_SYNC: "true"            # true/false
       
       # Table-specific batch sizes (optimized for different table sizes)
-      BATCH_SIZE_LOG_LINES: 50000      # Medium size, many records (~2-3 min upload)
-      BATCH_SIZE_PLAYER_STATS: 25000   # Large size, complex data (~5-8 min upload)
+      BATCH_SIZE_LOG_LINES: 150000      # Medium size, many records (~2-3 min upload)
+      BATCH_SIZE_PLAYER_STATS: 50000   # Large size, complex data (~5-8 min upload)
       BATCH_SIZE_MAPS: 10000           # Small size, simple data (~30 sec upload)
       BATCH_SIZE_PLAYER_SESSIONS: 30000 # Medium size (~1-2 min upload)
       
@@ -71,4 +71,5 @@ volumes:
 
 # NOTE: No networks: section because of network_mode: host
 # Container uses host network directly and can use localhost
+
 
